@@ -1,0 +1,54 @@
+[package]
+name = "followup"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.103"
+axum = "0.8.9"
+dotenvy = "0.15.7"
+mime_guess = "2.0.5"
+rust-embed = "8.11.0"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.150"
+# sqlx pinned to 0.8: tower-sessions-sqlx-store 0.15 depends on sqlx 0.8. Using 0.9 here
+# would put two sqlx versions in the graph and the SqlitePool types would not match.
+sqlx = { version = "0.8", default-features = false, features = [
+  "runtime-tokio",
+  "sqlite",
+  "macros",
+  "migrate",
+  "uuid",
+  "time",
+] }
+subtle = "2.6.1"
+thiserror = "2.0.18"
+time = { version = "0.3.53", features = ["formatting"] }
+tokio = { version = "1.52.3", features = [
+  "rt-multi-thread",
+  "macros",
+  "net",
+  "signal",
+] }
+tower-http = { version = "0.7.0", features = ["trace"] }
+tower-sessions = "0.14"
+tower-sessions-sqlx-store = { version = "0.15.0", default-features = false, features = [
+  "sqlite",
+] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+uuid = { version = "1.23.4", features = ["v4", "serde"] }
+# user-presence-only: accept touch-only security keys handed out at the event (no PIN/UV).
+webauthn-rs = { version = "0.5.5", features = [
+  "danger-allow-state-serialisation",
+  "danger-user-presence-only-security-keys",
+] }
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
+http-body-util = "0.1"
+
+[profile.release]
+lto = true
+strip = true
+codegen-units = 1

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Firefox Enterprise — Early Access</title>
+  <meta name="description" content="Sign up with your event security key to receive Firefox Enterprise materials and swag at launch." />
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/">
+      <img class="brand-mark" src="/assets/favicon.svg" alt="" width="28" height="28" />
+      <span class="wordmark">Firefox</span>
+      <span class="brand-badge" data-i18n="brand_badge">Enterprise</span>
+    </a>
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button type="button" data-lang="en">EN</button>
+      <span class="lang-sep">/</span>
+      <button type="button" data-lang="de">DE</button>
+    </div>
+  </header>
+
+  <main class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow" data-i18n="hero_eyebrow">Pre-launch access</p>
+      <h1 class="hero-title" data-i18n="hero_title">Enterprise browsing, built by Mozilla.</h1>
+      <p class="lede" data-i18n="hero_lede">
+        You picked up a security key at our booth. Use it to claim your spot on the Firefox
+        Enterprise pre-launch list — and we'll send materials and swag when we go live.
+      </p>
+      <ul class="perks">
+        <li data-i18n="perk_1">Early access to Firefox Enterprise evaluation builds</li>
+        <li data-i18n="perk_2">Deep-dive security & manageability briefings</li>
+        <li data-i18n="perk_3">Launch-day swag shipped to your door</li>
+      </ul>
+      <p class="key-note">
+        <span class="key-icon" aria-hidden="true"></span>
+        <span data-i18n="key_note">Your security key proves you met us in person — no password needed.</span>
+      </p>
+    </div>
+
+    <div class="card" id="card">
+      <!-- Step 1: email + security key -->
+      <section class="step" data-step="email">
+        <h2 data-i18n="email_title">Claim your spot</h2>
+        <p class="step-sub" data-i18n="email_help">Enter your email, then tap your security key to verify it's you.</p>
+        <label class="field">
+          <span class="field-label" data-i18n="label_email">Work email</span>
+          <input type="email" id="email" autocomplete="email" inputmode="email"
+                 data-i18n-placeholder="ph_email" placeholder="you@company.com" required />
+        </label>
+        <button type="button" class="btn primary" id="continue-btn" data-i18n="btn_continue">Continue with security key</button>
+      </section>
+
+      <!-- Step 2: signup form -->
+      <form class="step hidden" data-step="form" id="signup-form" novalidate>
+        <h2 data-i18n="form_title">You're verified — tell us where to send it</h2>
+        <p class="step-sub" data-i18n="form_intro">We'll use these details to ship your swag and info material.</p>
+        <label class="field">
+          <span class="field-label" data-i18n="label_full_name">Full name</span>
+          <input type="text" name="full_name" autocomplete="name" required />
+        </label>
+        <label class="field">
+          <span class="field-label" data-i18n="label_company">Company</span>
+          <input type="text" name="company" autocomplete="organization" required />
+        </label>
+        <label class="field">
+          <span class="field-label" data-i18n="label_street">Street &amp; number</span>
+          <input type="text" name="street" autocomplete="street-address" required />
+        </label>
+        <div class="field-row">
+          <label class="field field-small">
+            <span class="field-label" data-i18n="label_postal_code">Postal code</span>
+            <input type="text" name="postal_code" autocomplete="postal-code" required />
+          </label>
+          <label class="field">
+            <span class="field-label" data-i18n="label_city">City</span>
+            <input type="text" name="city" autocomplete="address-level2" required />
+          </label>
+        </div>
+        <label class="field">
+          <span class="field-label" data-i18n="label_country">Country</span>
+          <input type="text" name="country" autocomplete="country-name" required />
+        </label>
+        <label class="consent">
+          <input type="checkbox" name="gdpr_consent" id="consent" />
+          <span data-i18n="consent_text">I agree that Mozilla may store these details to send me Firefox Enterprise information and swag.</span>
+        </label>
+        <p class="privacy-note">
+          <a href="https://www.mozilla.org/privacy/" target="_blank" rel="noopener" data-i18n="privacy_link">Mozilla Privacy Notice</a>
+        </p>
+        <button type="submit" class="btn primary" data-i18n="btn_submit">Send me the good stuff</button>
+      </form>
+
+      <!-- Step 3: success -->
+      <section class="step hidden" data-step="success">
+        <div class="success-check" aria-hidden="true">✓</div>
+        <h2 data-i18n="success_title">You're on the list!</h2>
+        <p class="step-sub" data-i18n="success_body">Thanks — we'll be in touch as Firefox Enterprise gets closer to launch.</p>
+      </section>
+
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <span data-i18n="footer_powered">Powered by Mozilla</span>
+    <a href="https://www.mozilla.org/privacy/" target="_blank" rel="noopener" data-i18n="footer_privacy">Privacy</a>
+  </footer>
+
+  <script src="/i18n.js" defer></script>
+  <script src="/app.js" defer></script>
+</body>
+</html>
