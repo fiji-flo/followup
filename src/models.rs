@@ -25,11 +25,9 @@ pub struct SignupRequest {
     pub gdpr_consent: bool,
 }
 
-/// One row of the token-protected export.
+/// The current signup for a user, returned by `GET /api/signup` to pre-fill the edit form.
 #[derive(Serialize, sqlx::FromRow)]
-pub struct SignupExport {
-    pub id: i64,
-    pub email: String,
+pub struct SignupData {
     pub full_name: String,
     pub company: String,
     pub street: String,
@@ -37,5 +35,21 @@ pub struct SignupExport {
     pub city: String,
     pub country: String,
     pub gdpr_consent: bool,
-    pub created_at: String,
+}
+
+/// One row of the token-protected export: every registered security key, with its
+/// signup details if the person completed the form (`signed_up` distinguishes the two).
+#[derive(Serialize, sqlx::FromRow)]
+pub struct Registration {
+    pub email: String,
+    pub registered_at: String,
+    pub signed_up: bool,
+    pub full_name: Option<String>,
+    pub company: Option<String>,
+    pub street: Option<String>,
+    pub postal_code: Option<String>,
+    pub city: Option<String>,
+    pub country: Option<String>,
+    pub gdpr_consent: Option<bool>,
+    pub signed_up_at: Option<String>,
 }

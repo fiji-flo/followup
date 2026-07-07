@@ -17,6 +17,7 @@
       ph_email: "you@company.com",
       btn_continue: "Continue with security key",
       form_title: "You're verified — tell us where to send it",
+      form_title_edit: "Update your details",
       form_intro: "We'll use these details to ship your swag and info material.",
       label_full_name: "Full name",
       label_company: "Company",
@@ -28,6 +29,8 @@
         "I agree that Mozilla may store these details to send me Firefox Enterprise information and swag.",
       privacy_link: "Mozilla Privacy Notice",
       btn_submit: "Send me the good stuff",
+      btn_update: "Update my details",
+      btn_edit: "Edit my details",
       success_title: "You're on the list!",
       success_body:
         "Thanks — we'll be in touch as Firefox Enterprise gets closer to launch.",
@@ -61,6 +64,7 @@
       ph_email: "sie@firma.de",
       btn_continue: "Mit Sicherheitsschlüssel fortfahren",
       form_title: "Verifiziert — wohin dürfen wir es schicken?",
+      form_title_edit: "Ihre Angaben aktualisieren",
       form_intro: "Wir nutzen diese Angaben, um Ihnen Swag und Infomaterial zuzusenden.",
       label_full_name: "Vollständiger Name",
       label_company: "Unternehmen",
@@ -72,6 +76,8 @@
         "Ich bin einverstanden, dass Mozilla diese Angaben speichert, um mir Firefox-Enterprise-Informationen und Swag zuzusenden.",
       privacy_link: "Mozilla-Datenschutzhinweis",
       btn_submit: "Schickt mir die guten Sachen",
+      btn_update: "Angaben aktualisieren",
+      btn_edit: "Angaben bearbeiten",
       success_title: "Sie sind auf der Liste!",
       success_body:
         "Danke — wir melden uns, sobald der Firefox-Enterprise-Launch näher rückt.",

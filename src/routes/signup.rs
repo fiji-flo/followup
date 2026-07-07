@@ -9,8 +9,24 @@ use crate::models::SignupRequest;
 use crate::session::{AUTHED_USER, AuthedUser};
 use crate::state::AppState;
 
+/// `GET /api/signup` — the current user's existing signup (for pre-filling the edit
+/// form) plus their key-bound email. `signup` is `null` if they haven't submitted yet.
+/// Requires an authenticated session.
+pub async fn current(
+    State(state): State<AppState>,
+    session: Session,
+) -> Result<Json<Value>, AppError> {
+    let authed: AuthedUser = session
+        .get(AUTHED_USER)
+        .await?
+        .ok_or(AppError::Unauthorized)?;
+    let signup = db::get_signup(&state.db, authed.user_id).await?;
+    Ok(Json(json!({ "email": authed.email, "signup": signup })))
+}
+
 /// `POST /api/signup` — requires an authenticated session (a completed WebAuthn
 /// ceremony). The email is read from the session, never trusted from the body.
+/// Upserts, so re-submitting edits the existing signup instead of creating a duplicate.
 pub async fn submit(
     State(state): State<AppState>,
     session: Session,

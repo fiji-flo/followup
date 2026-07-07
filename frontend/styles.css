@@ -231,6 +231,13 @@ body {
 .btn.primary:hover { filter: brightness(1.05); }
 .btn.primary:active { transform: translateY(1px); }
 .btn[disabled] { opacity: .6; cursor: progress; }
+.btn.secondary {
+  color: var(--accent-strong);
+  background: #fff;
+  border: 1.5px solid var(--line);
+  margin-top: 14px;
+}
+.btn.secondary:hover { border-color: var(--accent); filter: none; }
 
 /* ---- Status / success ---- */
 .status { margin: 16px 0 0; font-size: 14px; min-height: 1.2em; }

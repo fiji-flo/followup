@@ -6,7 +6,7 @@ use subtle::ConstantTimeEq;
 
 use crate::db;
 use crate::error::AppError;
-use crate::models::SignupExport;
+use crate::models::Registration;
 use crate::state::AppState;
 
 /// `GET /api/export` — returns all signups as JSON. Guarded by a bearer token
@@ -14,7 +14,7 @@ use crate::state::AppState;
 pub async fn export(
     State(state): State<AppState>,
     headers: HeaderMap,
-) -> Result<Json<Vec<SignupExport>>, AppError> {
+) -> Result<Json<Vec<Registration>>, AppError> {
     let provided = headers
         .get(AUTHORIZATION)
         .and_then(|v| v.to_str().ok())
@@ -29,6 +29,6 @@ pub async fn export(
         return Err(AppError::Unauthorized);
     }
 
-    let signups = db::all_signups(&state.db).await?;
-    Ok(Json(signups))
+    let registrations = db::all_registrations(&state.db).await?;
+    Ok(Json(registrations))
 }

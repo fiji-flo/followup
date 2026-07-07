@@ -42,6 +42,38 @@
     if (submit) submit.disabled = on;
   }
 
+  // Switch the form between "new signup" and "edit existing" wording.
+  function setEditMode(editing) {
+    const title = form.querySelector("h2");
+    const submit = form.querySelector('button[type="submit"]');
+    title.setAttribute("data-i18n", editing ? "form_title_edit" : "form_title");
+    submit.setAttribute("data-i18n", editing ? "btn_update" : "btn_submit");
+    title.textContent = t(title.getAttribute("data-i18n"));
+    submit.textContent = t(submit.getAttribute("data-i18n"));
+  }
+
+  // Load any existing signup for the (now authenticated) user and pre-fill the form.
+  async function prepareForm() {
+    let existing = null;
+    try {
+      const res = await fetch("/api/signup", { credentials: "same-origin" });
+      if (res.ok) {
+        const data = await res.json();
+        existing = data && data.signup;
+      }
+    } catch (_) {
+      /* fall back to an empty form */
+    }
+    if (existing) {
+      for (const name of ["full_name", "company", "street", "postal_code", "city", "country"]) {
+        const field = form.querySelector(`[name=${name}]`);
+        if (field) field.value = existing[name] || "";
+      }
+      document.getElementById("consent").checked = !!existing.gdpr_consent;
+    }
+    setEditMode(Boolean(existing));
+  }
+
   // ---- fetch helper: throws an Error carrying {status, action} on non-2xx ----
   async function postJSON(url, data) {
     const res = await fetch(url, {
@@ -135,6 +167,7 @@
     try {
       await verify(email);
       setStatus("");
+      await prepareForm();
       showStep("form");
       const first = form.querySelector("input[type=text]");
       if (first) first.focus();
@@ -176,6 +209,7 @@
     try {
       await postJSON("/api/signup", payload);
       setStatus("");
+      setEditMode(true);
       showStep("success");
     } catch (e) {
       setStatus((e && e.message) || t("msg_submit_failed"), "error");
@@ -191,4 +225,8 @@
     if (e.key === "Enter") { e.preventDefault(); onContinue(); }
   });
   form.addEventListener("submit", onSubmit);
+  document.getElementById("edit-btn").addEventListener("click", () => {
+    setStatus("");
+    showStep("form");
+  });
 })();

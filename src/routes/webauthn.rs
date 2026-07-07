@@ -53,7 +53,7 @@ pub async fn register_start(
 
     let (ccr, reg) = state
         .webauthn
-        .start_securitykey_registration(user_id, &email, &email, None, None, None)?;
+        .start_passkey_registration(user_id, &email, &email, None)?;
 
     session
         .insert(REG_STATE, RegState { user_id, email, reg })
@@ -73,8 +73,8 @@ pub async fn register_finish(
         .await?
         .ok_or_else(|| AppError::BadRequest("no registration in progress".into()))?;
 
-    let key = state.webauthn.finish_securitykey_registration(&cred, &reg)?;
-    db::insert_user_and_credential(&state.db, user_id, &email, &key).await?;
+    let passkey = state.webauthn.finish_passkey_registration(&cred, &reg)?;
+    db::insert_user_and_credential(&state.db, user_id, &email, &passkey).await?;
 
     session
         .insert(AUTHED_USER, AuthedUser { user_id, email })
@@ -95,14 +95,14 @@ pub async fn login_start(
         .await?
         .ok_or(AppError::NotFound("register"))?;
 
-    let keys = db::load_securitykeys(&state.db, user_id).await?;
-    if keys.is_empty() {
+    let passkeys = db::load_passkeys(&state.db, user_id).await?;
+    if passkeys.is_empty() {
         return Err(AppError::NotFound("register"));
     }
 
     session.remove::<AuthState>(AUTH_STATE).await?;
 
-    let (rcr, auth) = state.webauthn.start_securitykey_authentication(&keys)?;
+    let (rcr, auth) = state.webauthn.start_passkey_authentication(&passkeys)?;
     session
         .insert(AUTH_STATE, AuthState { user_id, auth })
         .await?;
@@ -122,15 +122,15 @@ pub async fn login_finish(
         .ok_or_else(|| AppError::BadRequest("no authentication in progress".into()))?;
 
     // webauthn-rs performs counter-regression / replay detection internally.
-    let result = state.webauthn.finish_securitykey_authentication(&cred, &auth)?;
+    let result = state.webauthn.finish_passkey_authentication(&cred, &auth)?;
 
     // Bump the stored counter if the authenticator advanced it.
     if result.needs_update() {
-        let mut keys = db::load_securitykeys(&state.db, user_id).await?;
-        if let Some(key) = keys.iter_mut().find(|k| k.cred_id() == result.cred_id())
-            && key.update_credential(&result).is_some()
+        let mut passkeys = db::load_passkeys(&state.db, user_id).await?;
+        if let Some(passkey) = passkeys.iter_mut().find(|pk| pk.cred_id() == result.cred_id())
+            && passkey.update_credential(&result).is_some()
         {
-            db::update_credential(&state.db, key, result.counter()).await?;
+            db::update_credential(&state.db, passkey, result.counter()).await?;
         }
     }
 

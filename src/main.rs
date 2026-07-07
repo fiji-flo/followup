@@ -37,10 +37,6 @@ async fn main() -> anyhow::Result<()> {
     let webauthn = WebauthnBuilder::new(&config.rp_id, &config.rp_origin)
         .context("invalid WebAuthn RP configuration")?
         .rp_name(&config.rp_name)
-        // Security keys handed out at the event often have no PIN/biometric, so accept
-        // user-presence-only (touch) authenticators. Proof of possession is what we need;
-        // we are not using the key as a full user-verifying passwordless credential.
-        .danger_set_user_presence_only_security_keys(true)
         .build()
         .context("failed to build WebAuthn instance")?;
 

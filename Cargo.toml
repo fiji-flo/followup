@@ -41,7 +41,6 @@ uuid = { version = "1.23.4", features = ["v4", "serde"] }
 # user-presence-only: accept touch-only security keys handed out at the event (no PIN/UV).
 webauthn-rs = { version = "0.5.5", features = [
   "danger-allow-state-serialisation",
-  "danger-user-presence-only-security-keys",
 ] }
 
 [dev-dependencies]

@@ -173,3 +173,65 @@ async fn login_start_unknown_email_hints_register() {
     let body = res.into_body().collect().await.unwrap().to_bytes();
     assert!(String::from_utf8_lossy(&body).contains("register"));
 }
+
+#[tokio::test]
+async fn get_signup_requires_session() {
+    let res = get(test_app().await, "/api/signup").await;
+    assert_eq!(res.status(), StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn export_includes_registered_without_signup() {
+    let path = std::env::temp_dir().join(format!("fu-test-{}.db", Uuid::new_v4()));
+    let url = format!("sqlite://{}?mode=rwc", path.display());
+    let pool = crate::db::init_pool(&url).await.unwrap();
+
+    // One user who only registered a key.
+    let only_registered = Uuid::new_v4();
+    sqlx::query("INSERT INTO users (user_id, email, created_at) VALUES (?, ?, ?)")
+        .bind(only_registered)
+        .bind("registered@example.com")
+        .bind("2026-01-01T00:00:00Z")
+        .execute(&pool)
+        .await
+        .unwrap();
+
+    // One user who also completed the signup form.
+    let signed = Uuid::new_v4();
+    sqlx::query("INSERT INTO users (user_id, email, created_at) VALUES (?, ?, ?)")
+        .bind(signed)
+        .bind("signed@example.com")
+        .bind("2026-01-02T00:00:00Z")
+        .execute(&pool)
+        .await
+        .unwrap();
+    sqlx::query(
+        "INSERT INTO signups (user_id, email, full_name, company, street, postal_code, city, country, gdpr_consent, created_at) \
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    )
+    .bind(signed)
+    .bind("signed@example.com")
+    .bind("Ada Lovelace")
+    .bind("ACME")
+    .bind("Main St 1")
+    .bind("12345")
+    .bind("Berlin")
+    .bind("DE")
+    .bind(true)
+    .bind("2026-01-03T00:00:00Z")
+    .execute(&pool)
+    .await
+    .unwrap();
+
+    let rows = crate::db::all_registrations(&pool).await.unwrap();
+    assert_eq!(rows.len(), 2, "export should include every registered key");
+
+    let reg = rows.iter().find(|r| r.email == "registered@example.com").unwrap();
+    assert!(!reg.signed_up);
+    assert!(reg.full_name.is_none());
+
+    let sig = rows.iter().find(|r| r.email == "signed@example.com").unwrap();
+    assert!(sig.signed_up);
+    assert_eq!(sig.full_name.as_deref(), Some("Ada Lovelace"));
+    assert_eq!(sig.gdpr_consent, Some(true));
+}

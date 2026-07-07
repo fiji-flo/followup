@@ -8,9 +8,9 @@ use sqlx::sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions};
 use time::OffsetDateTime;
 use time::format_description::well_known::Rfc3339;
 use uuid::Uuid;
-use webauthn_rs::prelude::SecurityKey;
+use webauthn_rs::prelude::Passkey;
 
-use crate::models::{SignupExport, SignupRequest};
+use crate::models::{Registration, SignupData, SignupRequest};
 
 /// Create the connection pool, ensuring the DB file's parent directory exists,
 /// enabling WAL + foreign keys, then running embedded migrations.
@@ -89,14 +89,14 @@ pub async fn email_for_user(
         .await
 }
 
-/// Load and deserialize all security keys registered to a user.
-pub async fn load_securitykeys(pool: &SqlitePool, user_id: Uuid) -> Result<Vec<SecurityKey>> {
+/// Load and deserialize all passkeys registered to a user.
+pub async fn load_passkeys(pool: &SqlitePool, user_id: Uuid) -> Result<Vec<Passkey>> {
     let rows: Vec<String> = sqlx::query_scalar("SELECT passkey FROM credentials WHERE user_id = ?")
         .bind(user_id)
         .fetch_all(pool)
         .await?;
     rows.iter()
-        .map(|json| serde_json::from_str::<SecurityKey>(json).map_err(Into::into))
+        .map(|json| serde_json::from_str::<Passkey>(json).map_err(Into::into))
         .collect()
 }
 
@@ -105,11 +105,11 @@ pub async fn insert_user_and_credential(
     pool: &SqlitePool,
     user_id: Uuid,
     email: &str,
-    key: &SecurityKey,
+    passkey: &Passkey,
 ) -> Result<()> {
     let now = now_rfc3339();
-    let passkey_json = serde_json::to_string(key)?;
-    let cred_id = key.cred_id().as_ref();
+    let passkey_json = serde_json::to_string(passkey)?;
+    let cred_id = passkey.cred_id().as_ref();
 
     let mut tx = pool.begin().await?;
     sqlx::query("INSERT OR IGNORE INTO users (user_id, email, created_at) VALUES (?, ?, ?)")
@@ -133,15 +133,15 @@ pub async fn insert_user_and_credential(
 }
 
 /// Persist an updated passkey (counter bump) after a successful authentication.
-pub async fn update_credential(pool: &SqlitePool, key: &SecurityKey, counter: u32) -> Result<()> {
-    let json = serde_json::to_string(key)?;
+pub async fn update_credential(pool: &SqlitePool, passkey: &Passkey, counter: u32) -> Result<()> {
+    let json = serde_json::to_string(passkey)?;
     sqlx::query(
         "UPDATE credentials SET passkey = ?, counter = ?, last_used_at = ? WHERE cred_id = ?",
     )
     .bind(&json)
     .bind(counter as i64)
     .bind(now_rfc3339())
-    .bind(key.cred_id().as_ref())
+    .bind(passkey.cred_id().as_ref())
     .execute(pool)
     .await?;
     Ok(())
@@ -178,12 +178,34 @@ pub async fn upsert_signup(
     Ok(())
 }
 
-/// All signups, newest first — for the token-protected export.
-pub async fn all_signups(pool: &SqlitePool) -> Result<Vec<SignupExport>, sqlx::Error> {
-    sqlx::query_as::<_, SignupExport>(
-        "SELECT id, email, full_name, company, street, postal_code, city, country, \
-                gdpr_consent, created_at \
-         FROM signups ORDER BY created_at DESC",
+/// The current signup for a user, if they have completed the form.
+pub async fn get_signup(
+    pool: &SqlitePool,
+    user_id: Uuid,
+) -> Result<Option<SignupData>, sqlx::Error> {
+    sqlx::query_as::<_, SignupData>(
+        "SELECT full_name, company, street, postal_code, city, country, gdpr_consent \
+         FROM signups WHERE user_id = ?",
+    )
+    .bind(user_id)
+    .fetch_optional(pool)
+    .await
+}
+
+/// Every registered security key, newest first, with its signup details if present —
+/// for the token-protected export. A `NULL`-joined row means the key was registered but
+/// the person has not completed the signup form yet.
+pub async fn all_registrations(pool: &SqlitePool) -> Result<Vec<Registration>, sqlx::Error> {
+    sqlx::query_as::<_, Registration>(
+        "SELECT u.email AS email, \
+                u.created_at AS registered_at, \
+                CASE WHEN s.user_id IS NOT NULL THEN 1 ELSE 0 END AS signed_up, \
+                s.full_name AS full_name, s.company AS company, s.street AS street, \
+                s.postal_code AS postal_code, s.city AS city, s.country AS country, \
+                s.gdpr_consent AS gdpr_consent, s.created_at AS signed_up_at \
+         FROM users u \
+         LEFT JOIN signups s ON s.user_id = u.user_id \
+         ORDER BY u.created_at DESC",
     )
     .fetch_all(pool)
     .await

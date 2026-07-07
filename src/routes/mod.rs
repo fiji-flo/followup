@@ -28,7 +28,7 @@ pub fn build_router(state: AppState, store: SqliteStore, session_secure: bool) -
         .route("/api/register/finish", post(webauthn::register_finish))
         .route("/api/login/start", post(webauthn::login_start))
         .route("/api/login/finish", post(webauthn::login_finish))
-        .route("/api/signup", post(signup::submit))
+        .route("/api/signup", post(signup::submit).get(signup::current))
         .route("/api/export", get(export::export))
         .fallback(assets::static_handler)
         .layer(session_layer)

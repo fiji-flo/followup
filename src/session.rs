@@ -3,7 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use webauthn_rs::prelude::{SecurityKeyAuthentication, SecurityKeyRegistration};
+use webauthn_rs::prelude::{PasskeyAuthentication, PasskeyRegistration};
 
 /// In-flight WebAuthn registration ceremony state.
 pub const REG_STATE: &str = "reg_state";
@@ -16,13 +16,13 @@ pub const AUTHED_USER: &str = "authed_user";
 pub struct RegState {
     pub user_id: Uuid,
     pub email: String,
-    pub reg: SecurityKeyRegistration,
+    pub reg: PasskeyRegistration,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct AuthState {
     pub user_id: Uuid,
-    pub auth: SecurityKeyAuthentication,
+    pub auth: PasskeyAuthentication,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
