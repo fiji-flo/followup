@@ -12,6 +12,7 @@ pub struct Config {
     pub rp_origin: Url,
     pub rp_name: String,
     pub export_token: String,
+    pub admin_token: String,
     pub session_secure: bool,
 }
 
@@ -26,13 +27,17 @@ impl Config {
             .context("RP_ORIGIN must be a valid URL, e.g. https://enterprise.firefox.com")?;
         let rp_name = env("RP_NAME")?;
         let export_token = env("EXPORT_TOKEN")?;
+        let admin_token = env("ADMIN_TOKEN")?;
         let session_secure = env("SESSION_SECURE")?
             .parse()
             .context("SESSION_SECURE must be `true` or `false`")?;
 
         ensure!(!export_token.is_empty(), "EXPORT_TOKEN must not be empty");
+        ensure!(!admin_token.is_empty(), "ADMIN_TOKEN must not be empty");
         ensure!(
-            rp_origin.host_str().is_some_and(|h| h == rp_id || h.ends_with(&format!(".{rp_id}"))),
+            rp_origin
+                .host_str()
+                .is_some_and(|h| h == rp_id || h.ends_with(&format!(".{rp_id}"))),
             "RP_ID ({rp_id}) must be a registrable suffix of RP_ORIGIN's host ({:?})",
             rp_origin.host_str()
         );
@@ -44,6 +49,7 @@ impl Config {
             rp_origin,
             rp_name,
             export_token,
+            admin_token,
             session_secure,
         })
     }

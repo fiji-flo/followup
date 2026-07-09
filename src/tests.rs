@@ -32,6 +32,7 @@ async fn test_app() -> Router {
         db: pool,
         webauthn: Arc::new(webauthn),
         export_token: Arc::from("test-token"),
+        admin_token: Arc::from("test-admin-token"),
     };
     build_router(state, store, false)
 }
@@ -40,7 +41,12 @@ async fn test_app() -> Router {
 async fn healthz_ok() {
     let app = test_app().await;
     let res = app
-        .oneshot(Request::builder().uri("/healthz").body(Body::empty()).unwrap())
+        .oneshot(
+            Request::builder()
+                .uri("/healthz")
+                .body(Body::empty())
+                .unwrap(),
+        )
         .await
         .unwrap();
     assert_eq!(res.status(), StatusCode::OK);
@@ -50,7 +56,12 @@ async fn healthz_ok() {
 async fn export_requires_token() {
     let app = test_app().await;
     let res = app
-        .oneshot(Request::builder().uri("/api/export").body(Body::empty()).unwrap())
+        .oneshot(
+            Request::builder()
+                .uri("/api/export")
+                .body(Body::empty())
+                .unwrap(),
+        )
         .await
         .unwrap();
     assert_eq!(res.status(), StatusCode::UNAUTHORIZED);
@@ -181,6 +192,76 @@ async fn get_signup_requires_session() {
 }
 
 #[tokio::test]
+async fn admin_activate_phase2_requires_token() {
+    let app = test_app().await;
+    let res = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/admin/phase2/activate")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(res.status(), StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn admin_activate_phase2_rejects_wrong_token() {
+    let app = test_app().await;
+    let res = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/admin/phase2/activate")
+                .header(header::AUTHORIZATION, "Bearer nope")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(res.status(), StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn admin_activate_phase2_flips_the_switch() {
+    let path = std::env::temp_dir().join(format!("fu-test-{}.db", Uuid::new_v4()));
+    let url = format!("sqlite://{}?mode=rwc", path.display());
+    let pool = crate::db::init_pool(&url).await.unwrap();
+    assert!(!crate::db::phase2_active(&pool).await.unwrap());
+
+    let store = SqliteStore::new(pool.clone());
+    store.migrate().await.unwrap();
+    let webauthn = WebauthnBuilder::new("localhost", &Url::parse("http://localhost:8080").unwrap())
+        .unwrap()
+        .rp_name("test")
+        .build()
+        .unwrap();
+    let state = AppState {
+        db: pool.clone(),
+        webauthn: Arc::new(webauthn),
+        export_token: Arc::from("test-token"),
+        admin_token: Arc::from("test-admin-token"),
+    };
+    let app = build_router(state, store, false);
+
+    let res = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/admin/phase2/activate")
+                .header(header::AUTHORIZATION, "Bearer test-admin-token")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(res.status(), StatusCode::OK);
+    assert!(crate::db::phase2_active(&pool).await.unwrap());
+}
+
+#[tokio::test]
 async fn export_includes_registered_without_signup() {
     let path = std::env::temp_dir().join(format!("fu-test-{}.db", Uuid::new_v4()));
     let url = format!("sqlite://{}?mode=rwc", path.display());
@@ -226,11 +307,17 @@ async fn export_includes_registered_without_signup() {
     let rows = crate::db::all_registrations(&pool).await.unwrap();
     assert_eq!(rows.len(), 2, "export should include every registered key");
 
-    let reg = rows.iter().find(|r| r.email == "registered@example.com").unwrap();
+    let reg = rows
+        .iter()
+        .find(|r| r.email == "registered@example.com")
+        .unwrap();
     assert!(!reg.signed_up);
     assert!(reg.full_name.is_none());
 
-    let sig = rows.iter().find(|r| r.email == "signed@example.com").unwrap();
+    let sig = rows
+        .iter()
+        .find(|r| r.email == "signed@example.com")
+        .unwrap();
     assert!(sig.signed_up);
     assert_eq!(sig.full_name.as_deref(), Some("Ada Lovelace"));
     assert_eq!(sig.gdpr_consent, Some(true));

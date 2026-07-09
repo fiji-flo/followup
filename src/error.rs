@@ -19,6 +19,9 @@ pub enum AppError {
     #[error("conflict")]
     Conflict(&'static str),
 
+    #[error("phase 2 not active")]
+    PhaseLocked,
+
     #[error("bad request: {0}")]
     BadRequest(String),
 
@@ -50,6 +53,10 @@ impl IntoResponse for AppError {
                 json!({ "error": "conflict", "action": action }),
             ),
             AppError::BadRequest(msg) => (StatusCode::BAD_REQUEST, json!({ "error": msg })),
+            AppError::PhaseLocked => (
+                StatusCode::FORBIDDEN,
+                json!({ "error": "not available yet", "phase2_active": false }),
+            ),
             AppError::Webauthn(e) => {
                 tracing::warn!(error = %e, "webauthn ceremony failed");
                 (

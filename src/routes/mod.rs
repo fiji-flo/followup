@@ -1,3 +1,4 @@
+pub mod admin;
 pub mod export;
 pub mod health;
 pub mod signup;
@@ -30,6 +31,7 @@ pub fn build_router(state: AppState, store: SqliteStore, session_secure: bool) -
         .route("/api/login/finish", post(webauthn::login_finish))
         .route("/api/signup", post(signup::submit).get(signup::current))
         .route("/api/export", get(export::export))
+        .route("/api/admin/phase2/activate", post(admin::activate_phase2))
         .fallback(assets::static_handler)
         .layer(session_layer)
         .layer(TraceLayer::new_for_http())

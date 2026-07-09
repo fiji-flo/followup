@@ -54,6 +54,7 @@ async fn main() -> anyhow::Result<()> {
         db: pool,
         webauthn: Arc::new(webauthn),
         export_token: Arc::from(config.export_token.as_str()),
+        admin_token: Arc::from(config.admin_token.as_str()),
     };
 
     let app = routes::build_router(state, session_store, config.session_secure);

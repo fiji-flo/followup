@@ -192,6 +192,23 @@ pub async fn get_signup(
     .await
 }
 
+/// Whether phase 2 (login + the contact-info form) has been activated by the admin.
+pub async fn phase2_active(pool: &SqlitePool) -> Result<bool, sqlx::Error> {
+    let active: i64 = sqlx::query_scalar("SELECT phase2_active FROM app_phase WHERE id = 1")
+        .fetch_one(pool)
+        .await?;
+    Ok(active != 0)
+}
+
+/// Flip the phase 2 switch. Idempotent.
+pub async fn set_phase2_active(pool: &SqlitePool, active: bool) -> Result<(), sqlx::Error> {
+    sqlx::query("UPDATE app_phase SET phase2_active = ? WHERE id = 1")
+        .bind(active)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
 /// Every registered security key, newest first, with its signup details if present —
 /// for the token-protected export. A `NULL`-joined row means the key was registered but
 /// the person has not completed the signup form yet.

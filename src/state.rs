@@ -10,4 +10,5 @@ pub struct AppState {
     pub db: SqlitePool,
     pub webauthn: Arc<Webauthn>,
     pub export_token: Arc<str>,
+    pub admin_token: Arc<str>,
 }

@@ -53,25 +53,38 @@
   }
 
   // Load any existing signup for the (now authenticated) user and pre-fill the form.
+  // Returns false if phase 2 (the contact-info form) hasn't been unlocked yet.
   async function prepareForm() {
     let existing = null;
+    let unlocked = true;
     try {
       const res = await fetch("/api/signup", { credentials: "same-origin" });
-      if (res.ok) {
+      if (res.status === 403) {
+        unlocked = false;
+      } else if (res.ok) {
         const data = await res.json();
         existing = data && data.signup;
       }
     } catch (_) {
       /* fall back to an empty form */
     }
+    if (!unlocked) return false;
     if (existing) {
-      for (const name of ["full_name", "company", "street", "postal_code", "city", "country"]) {
+      for (const name of [
+        "full_name",
+        "company",
+        "street",
+        "postal_code",
+        "city",
+        "country",
+      ]) {
         const field = form.querySelector(`[name=${name}]`);
         if (field) field.value = existing[name] || "";
       }
       document.getElementById("consent").checked = !!existing.gdpr_consent;
     }
     setEditMode(Boolean(existing));
+    return true;
   }
 
   // ---- fetch helper: throws an Error carrying {status, action} on non-2xx ----
@@ -83,7 +96,11 @@
       body: JSON.stringify(data),
     });
     let body = null;
-    try { body = await res.json(); } catch (_) { /* empty body */ }
+    try {
+      body = await res.json();
+    } catch (_) {
+      /* empty body */
+    }
     if (!res.ok) {
       const err = new Error((body && body.error) || res.statusText);
       err.status = res.status;
@@ -100,7 +117,10 @@
     pk.challenge = b64urlToBuf(pk.challenge);
     pk.user.id = b64urlToBuf(pk.user.id);
     if (Array.isArray(pk.excludeCredentials)) {
-      pk.excludeCredentials = pk.excludeCredentials.map((c) => ({ ...c, id: b64urlToBuf(c.id) }));
+      pk.excludeCredentials = pk.excludeCredentials.map((c) => ({
+        ...c,
+        id: b64urlToBuf(c.id),
+      }));
     }
     setStatus(t("msg_touch_register"), "working");
     const cred = await navigator.credentials.create({ publicKey: pk });
@@ -120,7 +140,10 @@
     const pk = options.publicKey;
     pk.challenge = b64urlToBuf(pk.challenge);
     if (Array.isArray(pk.allowCredentials)) {
-      pk.allowCredentials = pk.allowCredentials.map((c) => ({ ...c, id: b64urlToBuf(c.id) }));
+      pk.allowCredentials = pk.allowCredentials.map((c) => ({
+        ...c,
+        id: b64urlToBuf(c.id),
+      }));
     }
     setStatus(t("msg_touch_login"), "working");
     const cred = await navigator.credentials.get({ publicKey: pk });
@@ -132,7 +155,9 @@
         authenticatorData: bufToB64url(cred.response.authenticatorData),
         clientDataJSON: bufToB64url(cred.response.clientDataJSON),
         signature: bufToB64url(cred.response.signature),
-        userHandle: cred.response.userHandle ? bufToB64url(cred.response.userHandle) : null,
+        userHandle: cred.response.userHandle
+          ? bufToB64url(cred.response.userHandle)
+          : null,
       },
     });
   }
@@ -167,10 +192,14 @@
     try {
       await verify(email);
       setStatus("");
-      await prepareForm();
-      showStep("form");
-      const first = form.querySelector("input[type=text]");
-      if (first) first.focus();
+      const unlocked = await prepareForm();
+      if (unlocked) {
+        showStep("form");
+        const first = form.querySelector("input[type=text]");
+        if (first) first.focus();
+      } else {
+        showStep("phase1");
+      }
     } catch (e) {
       if (e && (e.name === "NotAllowedError" || e.name === "AbortError")) {
         setStatus(t("msg_cancelled"), "error");
@@ -222,7 +251,10 @@
   window.i18n.init();
   continueBtn.addEventListener("click", onContinue);
   emailInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") { e.preventDefault(); onContinue(); }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      onContinue();
+    }
   });
   form.addEventListener("submit", onSubmit);
   document.getElementById("edit-btn").addEventListener("click", () => {
