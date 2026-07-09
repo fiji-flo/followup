@@ -1,17 +1,86 @@
 /* ---- Firefox Enterprise pre-launch signup ---- */
+/*
+ * Neutral / status tokens below are sourced from the Acorn design system
+ * (design-system/tokens-shared.css, tokens-brand.css, text-and-typography.css).
+ * The accent palette instead uses the official Firefox Enterprise mark's own
+ * blue gradient stops (see assets/favicon.svg) rather than the generic
+ * design-system blue step, so the UI reads as this product's brand rather
+ * than an arbitrary accent color.
+ * Values are inlined here (rather than imported) since this app ships as a
+ * single self-contained frontend bundle.
+ */
 :root {
-  --bg: #ffffff;
-  --ink: #15141a;
-  --muted: #5b5b66;
-  --line: #e7e5ec;
-  --field-bg: #fbfbfe;
-  --accent: #7542e4;
-  --accent-2: #9a5bff;
-  --accent-strong: #5a2bc4;
-  --danger: #d7263d;
-  --ok: #1f9d55;
-  --shadow: 0 24px 60px -28px rgba(90, 43, 196, 0.45);
-  --radius: 18px;
+  /* -- Color primitives -- */
+  --color-white: #ffffff;
+  --color-gray-05: #fbfbfe;
+  --color-gray-20: #f0f0f4;
+  --color-gray-70: #5b5b66;
+  --color-gray-100: #15141a;
+  --color-red-60: oklch(55% 0.21 15);
+  --color-green-60: oklch(55% 0.21 145);
+
+  /* -- Brand blues, sampled from the Firefox Enterprise mark
+     (assets/favicon.svg gradient stops) -- */
+  --brand-navy: #1f3059; /* darkest shield tone */
+  --brand-blue-deep: #094573; /* deep, accessible-contrast blue */
+  --brand-blue: #1d89e3; /* primary interactive blue */
+  --brand-blue-hover: #106ccd; /* mid-tone, for hover states */
+  --brand-blue-light: #2598ff; /* bright highlight / gradient partner */
+
+  /* -- Warm flame accents, sampled from the same mark -- the small
+     yellow/orange/red glow tucked behind the blue shield. Used sparingly,
+     as secondary highlights rather than the primary interactive color -- */
+  --brand-flame-yellow: #fff44f;
+  --brand-flame-orange: #ff980e;
+  --brand-flame-red: #ff3647;
+
+  /* -- Semantic accent tokens, matching the design system's own
+     --color-accent-primary(-hover/-active) naming, mapped onto the brand
+     blues above instead of a generic palette step -- */
+  --color-accent-primary: var(--brand-blue);
+  --color-accent-primary-hover: var(--brand-blue-hover);
+  --color-accent-primary-active: var(--brand-blue-deep);
+
+  /* -- Semantic colors (this app's usage of the primitives above) -- */
+  --bg: var(--color-white);
+  --ink: var(--color-gray-100);
+  --muted: var(--color-gray-70);
+  --line: var(--color-gray-20);
+  --field-bg: var(--color-gray-05);
+  --accent: var(--color-accent-primary);
+  --accent-2: var(--brand-blue-light);
+  --accent-strong: var(--color-accent-primary-active);
+  --danger: var(--color-red-60);
+  --ok: var(--color-green-60);
+
+  /* -- Font size / weight scale -- */
+  --font-size-root: 0.9375rem; /* 15px */
+  --font-size-small: 0.867rem; /* 13px */
+  --font-size-large: 1.133rem; /* 17px */
+  --font-size-xlarge: 1.467rem; /* 22px */
+  --font-size-xxlarge: 1.6rem; /* 24px */
+  --font-weight-bold: 600;
+  --heading-font-weight: var(--font-weight-bold);
+
+  /* -- Spacing scale -- */
+  --space-xsmall: 4px;
+  --space-small: 8px;
+  --space-medium: 12px;
+  --space-large: 16px;
+  --space-xlarge: 24px;
+  --space-xxlarge: 32px;
+
+  /* -- Radius scale -- */
+  --border-radius-medium: 8px;
+  --border-radius-large: 12px;
+  --border-radius-circle: 9999px;
+  --border-width: 1px;
+
+  /* -- Icon size -- */
+  --icon-size-medium: 20px;
+
+  --radius: var(--border-radius-large);
+  --shadow: 0 24px 60px -28px color-mix(in srgb, var(--brand-navy) 45%, transparent);
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
 }
 
@@ -24,8 +93,9 @@ body {
   font-family: var(--font);
   color: var(--ink);
   background:
-    radial-gradient(1200px 520px at 78% -8%, rgba(154, 91, 255, 0.16), transparent 60%),
-    radial-gradient(900px 480px at 8% 4%, rgba(117, 66, 228, 0.10), transparent 55%),
+    radial-gradient(560px 320px at 94% 0%, color-mix(in srgb, var(--brand-flame-orange) 14%, transparent), transparent 65%),
+    radial-gradient(1200px 520px at 78% -8%, color-mix(in srgb, var(--accent-2) 18%, transparent), transparent 60%),
+    radial-gradient(900px 480px at 8% 4%, color-mix(in srgb, var(--brand-navy) 12%, transparent), transparent 55%),
     var(--bg);
   min-height: 100vh;
   display: flex;
@@ -52,29 +122,29 @@ body {
   color: var(--ink);
 }
 .brand-mark { display: block; }
-.wordmark { font-size: 21px; font-weight: 800; letter-spacing: -0.02em; }
+.wordmark { font-size: var(--font-size-xlarge); font-weight: var(--font-weight-bold); letter-spacing: -0.02em; }
 .brand-badge {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--accent-strong);
-  background: rgba(117, 66, 228, 0.10);
-  border: 1px solid rgba(117, 66, 228, 0.22);
-  padding: 3px 9px;
-  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border: var(--border-width) solid color-mix(in srgb, var(--accent) 22%, transparent);
+  padding: var(--space-xsmall) 9px;
+  border-radius: var(--border-radius-circle);
 }
-.lang-toggle { display: inline-flex; align-items: center; gap: 4px; }
+.lang-toggle { display: inline-flex; align-items: center; gap: var(--space-xsmall); }
 .lang-toggle button {
   border: 0;
   background: none;
   font: inherit;
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-small);
   color: var(--muted);
   cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 8px;
+  padding: var(--space-xsmall) 6px;
+  border-radius: var(--border-radius-medium);
 }
 .lang-toggle button.active { color: var(--accent-strong); }
 .lang-toggle button:hover { color: var(--ink); }
@@ -94,8 +164,8 @@ body {
 }
 .eyebrow {
   margin: 0 0 14px;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--accent-strong);
@@ -105,7 +175,7 @@ body {
   font-size: clamp(34px, 5.2vw, 56px);
   line-height: 1.04;
   letter-spacing: -0.03em;
-  font-weight: 800;
+  font-weight: var(--heading-font-weight);
 }
 .lede {
   margin: 0 0 26px;
@@ -118,19 +188,19 @@ body {
   margin: 0 0 26px;
   padding: 0;
   display: grid;
-  gap: 12px;
+  gap: var(--space-medium);
 }
 .perks li {
   position: relative;
-  padding-left: 32px;
+  padding-left: var(--space-xxlarge);
   font-weight: 500;
 }
 .perks li::before {
   content: "";
   position: absolute;
   left: 0; top: 2px;
-  width: 20px; height: 20px;
-  border-radius: 999px;
+  width: var(--icon-size-medium); height: var(--icon-size-medium);
+  border-radius: var(--border-radius-circle);
   background:
     linear-gradient(135deg, var(--accent), var(--accent-2));
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' d='M20 6L9 17l-5-5'/%3E%3C/svg%3E") center / 14px no-repeat;
@@ -140,23 +210,23 @@ body {
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  font-size: 14px;
+  font-size: var(--font-size-small);
   color: var(--muted);
   margin: 0;
 }
 .key-icon {
   flex: none;
-  width: 20px; height: 20px;
+  width: var(--icon-size-medium); height: var(--icon-size-medium);
   margin-top: 1px;
-  background: var(--accent-strong);
+  background: var(--brand-flame-red);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5m0 2a3 3 0 0 1 3 3v3H9V6a3 3 0 0 1 3-3m0 11a2 2 0 0 1 1 3.7V19a1 1 0 0 1-2 0v-1.3A2 2 0 0 1 12 14'/%3E%3C/svg%3E") center / contain no-repeat;
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5m0 2a3 3 0 0 1 3 3v3H9V6a3 3 0 0 1 3-3m0 11a2 2 0 0 1 1 3.7V19a1 1 0 0 1-2 0v-1.3A2 2 0 0 1 12 14'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
 /* ---- Card ---- */
 .card {
-  background: #fff;
-  border: 1px solid var(--line);
+  background: var(--color-white);
+  border: var(--border-width) solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: clamp(24px, 3vw, 36px);
@@ -165,27 +235,27 @@ body {
   justify-self: end;
 }
 .card h2 {
-  margin: 0 0 8px;
-  font-size: 23px;
+  margin: 0 0 var(--space-small);
+  font-size: var(--font-size-xlarge);
   letter-spacing: -0.02em;
-  font-weight: 800;
+  font-weight: var(--heading-font-weight);
 }
-.step-sub { margin: 0 0 22px; color: var(--muted); font-size: 15px; }
+.step-sub { margin: 0 0 22px; color: var(--muted); font-size: var(--font-size-root); }
 .step.hidden { display: none; }
 
-.field { display: block; margin-bottom: 16px; }
+.field { display: block; margin-bottom: var(--space-large); }
 .field-label {
   display: block;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
   margin-bottom: 6px;
 }
 .field input {
   width: 100%;
   font: inherit;
-  padding: 12px 14px;
-  border: 1px solid var(--line);
-  border-radius: 11px;
+  padding: var(--space-medium) 14px;
+  border: var(--border-width) solid var(--line);
+  border-radius: var(--border-radius-large);
   background: var(--field-bg);
   color: var(--ink);
   transition: border-color .15s, box-shadow .15s;
@@ -193,63 +263,66 @@ body {
 .field input:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(117, 66, 228, 0.18);
-  background: #fff;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  background: var(--color-white);
 }
-.field-row { display: grid; grid-template-columns: 1fr 1.4fr; gap: 12px; }
-.field-small { margin-bottom: 16px; }
+.field-row { display: grid; grid-template-columns: 1fr 1.4fr; gap: var(--space-medium); }
+.field-small { margin-bottom: var(--space-large); }
 
 .consent {
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  font-size: 14px;
+  font-size: var(--font-size-small);
   color: var(--muted);
   margin: 6px 0 4px;
   cursor: pointer;
 }
 .consent input { margin-top: 3px; width: 17px; height: 17px; accent-color: var(--accent); flex: none; }
-.privacy-note { margin: 0 0 20px; font-size: 13px; }
+.privacy-note { margin: 0 0 20px; font-size: var(--font-size-small); }
 .privacy-note a, .site-footer a { color: var(--accent-strong); }
 
 /* ---- Buttons ---- */
 .btn {
   font: inherit;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   border: 0;
-  border-radius: 12px;
+  border-radius: var(--border-radius-large);
   padding: 14px 18px;
   width: 100%;
   cursor: pointer;
   transition: transform .06s ease, filter .15s ease, box-shadow .15s;
 }
 .btn.primary {
-  color: #fff;
+  color: var(--color-white);
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  box-shadow: 0 12px 26px -12px rgba(117, 66, 228, 0.8);
+  box-shadow:
+    0 12px 26px -12px color-mix(in srgb, var(--accent) 80%, transparent),
+    0 8px 18px -14px color-mix(in srgb, var(--brand-flame-orange) 40%, transparent);
 }
 .btn.primary:hover { filter: brightness(1.05); }
 .btn.primary:active { transform: translateY(1px); }
 .btn[disabled] { opacity: .6; cursor: progress; }
 .btn.secondary {
   color: var(--accent-strong);
-  background: #fff;
+  background: var(--color-white);
   border: 1.5px solid var(--line);
   margin-top: 14px;
 }
 .btn.secondary:hover { border-color: var(--accent); filter: none; }
 
 /* ---- Status / success ---- */
-.status { margin: 16px 0 0; font-size: 14px; min-height: 1.2em; }
+.status { margin: var(--space-large) 0 0; font-size: var(--font-size-small); min-height: 1.2em; }
 .status.error { color: var(--danger); }
 .status.working { color: var(--muted); }
 .success-check {
   width: 56px; height: 56px;
-  border-radius: 999px;
+  border-radius: var(--border-radius-circle);
   display: grid; place-items: center;
-  font-size: 30px; color: #fff; font-weight: 700;
+  font-size: 30px; color: var(--color-white); font-weight: var(--font-weight-bold);
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  margin: 0 0 16px;
+  box-shadow: 0 10px 22px -8px color-mix(in srgb, var(--brand-flame-orange) 55%, transparent);
+  margin: 0 0 var(--space-large);
 }
 
 /* ---- Footer ---- */
@@ -258,10 +331,10 @@ body {
   gap: 20px;
   justify-content: center;
   align-items: center;
-  padding: 24px;
-  font-size: 13px;
+  padding: var(--space-xlarge);
+  font-size: var(--font-size-small);
   color: var(--muted);
-  border-top: 1px solid var(--line);
+  border-top: var(--border-width) solid var(--line);
 }
 .site-footer a { text-decoration: none; }
 
